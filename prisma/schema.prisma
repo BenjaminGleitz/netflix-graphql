@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String?
+  movies Movie[]
+  series Serie[]
+}
+
+model Director {
+  id     Int     @id @default(autoincrement())
+  name   String?
+  movies Movie[] // One director can have many movies
+  series Serie[] // One director can have many series
+}
+
+model Actor {
+  id     Int     @id @default(autoincrement())
+  name   String?
+  movies Movie[] // Many-to-many relation with movies
+  series Serie[] // Many-to-many relation with series
+}
+
+model Movie {
+  id          Int       @id @default(autoincrement())
+  name        String?
+  description String?
+  releaseDate DateTime?
+  rating      Float?
+  poster      String?
+  categoryId  Int // Foreign key to Category
+  category    Category  @relation(fields: [categoryId], references: [id])
+  directorId  Int // Foreign key to Director
+  director    Director  @relation(fields: [directorId], references: [id])
+  actors      Actor[] // Many-to-many relation with actors
+}
+
+model Serie {
+  id          Int       @id @default(autoincrement())
+  name        String?
+  description String?
+  releaseDate DateTime?
+  rating      Float?
+  poster      String?
+  categoryId  Int // Foreign key to Category
+  category    Category  @relation(fields: [categoryId], references: [id])
+  directorId  Int // Foreign key to Director
+  director    Director  @relation(fields: [directorId], references: [id])
+  actors      Actor[] // Many-to-many relation with actors
+}
