@@ -36,9 +36,9 @@ model Movie {
   rating      Float?
   poster      String?
   categoryId  Int // Foreign key to Category
-  category    Category  @relation(fields: [categoryId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   directorId  Int // Foreign key to Director
-  director    Director  @relation(fields: [directorId], references: [id])
+  director    Director  @relation(fields: [directorId], references: [id], onDelete: Cascade)
   actors      Actor[] // Many-to-many relation with actors
 }
 
@@ -50,8 +50,8 @@ model Serie {
   rating      Float?
   poster      String?
   categoryId  Int // Foreign key to Category
-  category    Category  @relation(fields: [categoryId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   directorId  Int // Foreign key to Director
-  director    Director  @relation(fields: [directorId], references: [id])
+  director    Director  @relation(fields: [directorId], references: [id], onDelete: Cascade)
   actors      Actor[] // Many-to-many relation with actors
 }

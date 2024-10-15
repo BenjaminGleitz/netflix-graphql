@@ -14,40 +14,172 @@ main()
     await prisma.$disconnect();
     process.exit(1);
 });
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
+//TYPE DEFS
 const typeDefs = `#graphql
-# Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
 
-# This "Book" type defines the queryable fields for every book in our data source.
-type Book {
-    title: String
-    author: String
+type Category  {
+    id: Int!
+    name: String!
+    movies: [Movie!]!
+    series: [Serie!]!
 }
 
-# The "Query" type is special: it lists all of the available queries that
-# clients can execute, along with the return type for each. In this
-# case, the "books" query returns an array of zero or more Books (defined above).
+type Director  {
+    id: Int!
+    name: String!
+    movies: [Movie!]!
+    series: [Serie!]!
+}
+
+type Actor  {
+    id: Int!
+    name: String!
+    movies: [Movie!]!
+    series: [Serie!]!
+}
+
+type Movie  {
+    id: Int!
+    name: String!
+    description: String!
+    releaseDate: String!
+    rating: Int!
+    poster: String!
+    categoryId: Int!
+    category: Category!
+    directorId: Int!
+    director: Director!
+    actors: [Actor!]!
+}
+
+type Serie  {
+    id: Int!
+    name: String!
+    description: String!
+    releaseDate: String!
+    rating: Int!
+    poster: String!
+    categoryId: Int!
+    category: Category!
+    directorId: Int!
+    director: Director!
+    actors: [Actor!]!
+}
+
 type Query {
-    books: [Book]
+    movies: [Movie!]!
+    series: [Serie!]!
+    categories: [Category!]!
+    directors: [Director!]!
+    actors: [Actor!]!
+    moviesById(id: Int!): Movie
+    seriesById(id: Int!): Serie
+    categoriesById(id: Int!): Category
+    directorsById(id: Int!): Director
+    actorsById(id: Int!): Actor
+}
+
+input CreateMovieInput {
+    categoryId: Int!
+    directorId: Int!
+    name: String!
+    description: String!
+    releaseDate: String!
+    rating: Int!
+    poster: String!
+}
+
+input CreateCategoryInput {
+    name: String!
+}
+
+input CreateDirectorInput {
+    name: String!
+}
+
+input CreateActorInput {
+    name: String!
+}
+
+type Mutation {
+    createMovie(input: CreateMovieInput!): Movie!
+    createCategory(input: CreateCategoryInput!): Category!
+    createDirector(input: CreateDirectorInput!): Director!
+    createActor(input: CreateActorInput!): Actor!
 }
 `;
-const books = [
-    {
-        title: 'The Awakening',
-        author: 'Kate Chopin',
-    },
-    {
-        title: 'City of Glass',
-        author: 'Paul Auster',
-    },
-];
-// Resolvers define how to fetch the types defined in your schema.
-// This resolver retrieves books from the "books" array above.
 const resolvers = {
     Query: {
-        books: () => books,
+        movies: () => prisma.movie.findMany(),
+        series: () => prisma.serie.findMany(),
+        categories: () => prisma.category.findMany(),
+        directors: () => prisma.director.findMany(),
+        actors: () => prisma.actor.findMany(),
+        moviesById: (_parent, args, _context) => prisma.movie.findUnique({
+            where: { id: args.id },
+        }),
+    },
+    Movie: {
+        category: (parent) => prisma.category.findUnique({
+            where: { id: parent.categoryId },
+        }),
+        director: (parent) => prisma.director.findUnique({
+            where: { id: parent.directorId },
+        }),
+        actors: (parent) => prisma.actor.findMany({
+            where: { movies: { some: { id: parent.id } } },
+        }),
+    },
+    Serie: {
+        category: (parent) => prisma.category.findUnique({
+            where: { id: parent.categoryId },
+        }),
+        director: (parent) => prisma.director.findUnique({
+            where: { id: parent.directorId },
+        }),
+        actors: (parent) => prisma.actor.findMany({
+            where: { series: { some: { id: parent.id } } },
+        }),
+    },
+    Category: {
+        movies: (parent) => prisma.movie.findMany({
+            where: { categoryId: parent.id },
+        }),
+        series: (parent) => prisma.serie.findMany({
+            where: { categoryId: parent.id },
+        }),
+    },
+    Director: {
+        movies: (parent) => prisma.movie.findMany({
+            where: { directorId: parent.id },
+        }),
+        series: (parent) => prisma.serie.findMany({
+            where: { directorId: parent.id },
+        }),
+    },
+    //MUTATIONS
+    Mutation: {
+        createActor: (_, { input }) => {
+            return prisma.actor.create({
+                data: {
+                    name: input.name,
+                },
+            });
+        },
+        createCategory: (_, { input }) => {
+            return prisma.category.create({
+                data: {
+                    name: input.name,
+                },
+            });
+        },
+        createDirector: (_, { input }) => {
+            return prisma.director.create({
+                data: {
+                    name: input.name,
+                },
+            });
+        },
     },
 };
 // The ApolloServer constructor requires two parameters: your schema
